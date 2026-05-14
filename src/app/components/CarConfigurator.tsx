@@ -2,6 +2,7 @@ import React, { useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, PresentationControls, Loader, Html } from '@react-three/drei';
 import { CarModel } from './CarModel';
+import { ErrorBoundary } from './ErrorBoundary';
 import { motion } from 'motion/react';
 import { Car } from 'lucide-react';
 
@@ -51,12 +52,13 @@ export function CarConfigurator() {
 
   return (
     <div className="relative w-full h-[600px] md:h-[800px] bg-gradient-to-b from-gray-900 to-black overflow-hidden shadow-2xl">
-      <Canvas shadows dpr={[1, 2]} camera={{ position: [6, 2, 8], fov: 40 }}>
-        <color attach="background" args={['#101010']} />
-        <ambientLight intensity={0.6} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} castShadow />
-        
-        <Suspense fallback={
+      <ErrorBoundary>
+        <Canvas shadows dpr={[1, 2]} camera={{ position: [6, 2, 8], fov: 40 }}>
+          <color attach="background" args={['#101010']} />
+          <ambientLight intensity={0.6} />
+          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} castShadow />
+          
+          <Suspense fallback={
           <Html center>
             <div className="flex flex-col items-center gap-4 bg-black/80 p-6 rounded-2xl border border-white/10 backdrop-blur-md w-64">
               <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -64,21 +66,22 @@ export function CarConfigurator() {
             </div>
           </Html>
         }>
-          <PresentationControls 
-            speed={1.5} 
-            global 
-            zoom={0.7} 
-            polar={[-0.1, Math.PI / 4]}
-          >
-            {/* The key prop ensures the component fully remounts and resets state when switching models */}
-            <CarModel key={selectedCar.id} modelUrl={selectedCar.url} color={carColor} />
-          </PresentationControls>
-          <ContactShadows position={[0, -0.6, 0]} opacity={0.75} scale={20} blur={2} far={4.5} />
-          <Environment preset="city" />
-        </Suspense>
-        
-        <OrbitControls enablePan={false} enableZoom={true} minPolarAngle={Math.PI/3} maxPolarAngle={Math.PI/2.1} />
-      </Canvas>
+            <PresentationControls 
+              speed={1.5} 
+              global 
+              zoom={0.7} 
+              polar={[-0.1, Math.PI / 4]}
+            >
+              {/* The key prop ensures the component fully remounts and resets state when switching models */}
+              <CarModel key={selectedCar.id} modelUrl={selectedCar.url} color={carColor} />
+            </PresentationControls>
+            <ContactShadows position={[0, -0.6, 0]} opacity={0.75} scale={20} blur={2} far={4.5} />
+            <Environment preset="city" />
+          </Suspense>
+          
+          <OrbitControls enablePan={false} enableZoom={true} minPolarAngle={Math.PI/3} maxPolarAngle={Math.PI/2.1} />
+        </Canvas>
+      </ErrorBoundary>
 
       <Loader /> {/* Provides a beautiful loading bar overlay */}
 
