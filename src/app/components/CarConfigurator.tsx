@@ -114,3 +114,21 @@ export function CarConfigurator() {
         <div className="w-full flex flex-col items-center gap-2">
           <h3 className="text-white font-bold text-base md:text-xl tracking-wider uppercase">Choose Your Wrap</h3>
           <p className="text-white/50 text-[10px] md:text-sm mb-1 text-center">Interact with the 3D model to view from all angles.</p>
+          <div className="flex gap-3 md:gap-4 flex-wrap justify-center mt-1">
+            {colors.map((c) => (
+              <motion.button
+                key={c.value}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setCarColor(c.value)}
+                className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-4 transition-all shadow-lg ${carColor === c.value ? 'border-white scale-110' : 'border-transparent opacity-80 hover:opacity-100'}`}
+                style={{ backgroundColor: c.value }}
+                title={c.name}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
