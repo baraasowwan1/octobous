@@ -1,6 +1,6 @@
 import React, { useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, PresentationControls } from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows, PresentationControls, Loader, Html } from '@react-three/drei';
 import { CarModel } from './CarModel';
 import { motion } from 'motion/react';
 
@@ -23,7 +23,11 @@ export function CarConfigurator() {
         <ambientLight intensity={0.6} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} castShadow />
         
-        <Suspense fallback={null}>
+        <Suspense fallback={
+          <Html center>
+            <div className="text-white text-lg font-bold animate-pulse">Loading 3D Model...</div>
+          </Html>
+        }>
           <PresentationControls 
             speed={1.5} 
             global 
@@ -39,6 +43,8 @@ export function CarConfigurator() {
         {/* We use OrbitControls to allow zooming, but disable panning to keep the car centered */}
         <OrbitControls enablePan={false} enableZoom={true} minPolarAngle={Math.PI/3} maxPolarAngle={Math.PI/2.1} />
       </Canvas>
+
+      <Loader /> {/* Provides a beautiful loading bar overlay */}
 
       {/* Glassmorphism UI Overlay */}
       <div className="absolute bottom-6 md:bottom-10 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-xl p-4 md:p-6 rounded-3xl border border-white/20 shadow-2xl flex flex-col items-center gap-2 md:gap-4 z-20 w-[95%] md:w-11/12 max-w-md pointer-events-auto">
