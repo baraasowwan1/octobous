@@ -35,12 +35,12 @@ const availableCars = [
   {
     id: 'mercedes',
     name: 'Mercedes AMG (Upload Required)',
-    url: '/mercedes.glb'
+    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/cliffs_mercedes_v8_biturbo.glb'
   },
   {
     id: 'porsche',
     name: 'Porsche 911 (Upload Required)',
-    url: '/porsche.glb'
+    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/free_porsche_911_carrera_4s.glb'
   }
 ];
 
