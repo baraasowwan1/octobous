@@ -16,6 +16,7 @@ const colors = [
 ];
 
 // Array of available 3D car models
+// Array of available 3D car models
 const availableCars = [
   {
     id: 'defender',
@@ -29,15 +30,16 @@ const availableCars = [
   },
   {
     id: 'bmw',
-    name: 'BMW M4 (Upload Required)',
-    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/bmw.glb'
+    name: 'BMW M4',
+    url: 'https://raw.githubusercontent.com/baraasowwan1/octobous/main/public/bmw.glb'
   },
   {
     id: 'mercedes',
-    name: 'Mercedes AMG (Upload Required)',
-    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/mercedes.glb'
+    name: 'Mercedes AMG',
+    url: 'https://raw.githubusercontent.com/baraasowwan1/octobous/main/public/mercedes.glb'
   },
 ];
+
 
 export function CarConfigurator() {
   const [carColor, setCarColor] = useState(colors[0].value);
