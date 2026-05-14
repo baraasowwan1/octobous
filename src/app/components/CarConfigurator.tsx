@@ -30,7 +30,7 @@ const availableCars = [
   {
     id: 'bmw',
     name: 'BMW M4 (Upload Required)',
-    url: '/bmw.glb'
+    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/free_bmw_m3_e30.glb'
   },
   {
     id: 'mercedes',
