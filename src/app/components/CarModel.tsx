@@ -46,7 +46,7 @@ export function CarModel({
     clonedScene.position.z -= center.z;
     clonedScene.position.y -= bottomY; 
 
-    // --- 2. DETECT AND UPDATE CAR PAINT (SAFE METHOD) ---
+    // --- 2. DETECT AND UPDATE CAR PAINT ---
     clonedScene.traverse((child: any) => {
       if (child.isMesh && child.material) {
         child.castShadow = true;
@@ -62,25 +62,19 @@ export function CarModel({
         const materialName = mat.name?.toLowerCase?.() || '';
         const meshName = child.name?.toLowerCase?.() || '';
 
-        // Skip obvious non-paint parts by name
+        // Skip ONLY obvious non-paint parts by name
         if (
           materialName.includes('glass') || materialName.includes('tire') || 
           materialName.includes('wheel') || materialName.includes('rubber') || 
           materialName.includes('interior') || materialName.includes('chrome') || 
-          materialName.includes('black') || meshName.includes('tire') || 
-          meshName.includes('wheel')
+          materialName.includes('grill') || materialName.includes('window') ||
+          meshName.includes('tire') || meshName.includes('wheel') || meshName.includes('glass')
         ) {
           return;
         }
 
-        // Skip very dark materials (usually plastic trims, grilles, undercarriage)
-        const hsl = { h: 0, s: 0, l: 0 };
-        if (mat.color) {
-          mat.color.getHSL(hsl);
-          if (hsl.l < 0.15) return; // Luminance is very low, it's dark trim.
-        }
-
         // CREATE A BULLETPROOF, SAFE CAR PAINT MATERIAL
+        // This completely avoids the Three.js .copy() crash bug!
         const newMat = new THREE.MeshPhysicalMaterial({
           color: new THREE.Color(color),
           metalness: 0.7,         // Realistic metallic car paint
@@ -90,7 +84,7 @@ export function CarModel({
           envMapIntensity: 2.0    // Strong reflections from the environment
         });
 
-        // SAFELY COPY OVER TEXTURE MAPS (to preserve realistic panel gaps)
+        // SAFELY COPY OVER TEXTURE MAPS manually (to preserve realistic panel gaps)
         if (mat.normalMap) newMat.normalMap = mat.normalMap;
         if (mat.aoMap) newMat.aoMap = mat.aoMap;
         if (mat.roughnessMap) newMat.roughnessMap = mat.roughnessMap;
