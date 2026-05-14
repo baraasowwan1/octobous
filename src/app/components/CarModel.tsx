@@ -2,48 +2,59 @@ import React, { useRef, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
-export function CarModel({ color = '#ff0000', ...props }: { color?: string; [key: string]: any }) {
+type CarModelProps = {
+  color?: string;
+  [key: string]: any;
+};
+
+export function CarModel({
+  color = '#ff0000',
+  ...props
+}: CarModelProps) {
   const group = useRef<THREE.Group>(null);
-  
-  // Using the Defender model uploaded to GitHub
-  const modelUrl = 'https://raw.githubusercontent.com/baraasowwan1/octobous/main/public/defender.gltf';
-  const { nodes, materials } = useGLTF(modelUrl) as any;
-  
-  // Update colors safely when the color prop changes
+
+  // IMPORTANT:
+  // Put defender.gltf + scene.bin + textures inside:
+  // public/models/
+
+  const modelPath = '/models/defender.gltf';
+
+  const gltf = useGLTF(modelPath) as any;
+
+  const { scene, materials, nodes } = gltf;
+
   useEffect(() => {
-    if (!materials) return;
-    
-    // Traverse all materials and update any that might be the car body
-    Object.values(materials).forEach((mat: any) => {
-      const name = mat.name.toLowerCase();
-      // The ferrari model body material is often named "body" or "paint"
-      if (name.includes('body') || name.includes('paint') || name.includes('car')) {
-        mat.color.set(color);
-        mat.needsUpdate = true;
+    if (!scene) return;
+
+    scene.traverse((child: any) => {
+      if (child.isMesh && child.material) {
+        const materialName = child.material.name?.toLowerCase?.() || '';
+        const meshName = child.name?.toLowerCase?.() || '';
+
+        // Try detecting car body materials
+        if (
+          materialName.includes('body') ||
+          materialName.includes('paint') ||
+          materialName.includes('car') ||
+          meshName.includes('body')
+        ) {
+          child.material = child.material.clone();
+          child.material.color = new THREE.Color(color);
+          child.material.needsUpdate = true;
+        }
+
+        child.castShadow = true;
+        child.receiveShadow = true;
       }
     });
-    
-    // Also try to find meshes directly in case material names are generic
-    if (nodes) {
-      Object.values(nodes).forEach((node: any) => {
-        if (node.isMesh && node.name.toLowerCase().includes('body')) {
-          if (node.material) {
-            node.material.color.set(color);
-            node.material.needsUpdate = true;
-          }
-        }
-      });
-    }
-  }, [color, materials, nodes]);
-
-  // Find the root object
-  const rootObject = nodes.Scene || nodes._rootJoint || Object.values(nodes)[0];
+  }, [scene, color]);
 
   return (
     <group ref={group} {...props} dispose={null}>
-      {rootObject && <primitive object={rootObject} />}
+      <primitive object={scene} />
     </group>
   );
 }
 
-useGLTF.preload('https://raw.githubusercontent.com/baraasowwan1/octobous/main/public/defender.gltf');
+// Preload model
+useGLTF.preload('/models/defender.gltf');
