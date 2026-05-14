@@ -30,18 +30,13 @@ const availableCars = [
   {
     id: 'bmw',
     name: 'BMW M4 (Upload Required)',
-    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/free_bmw_m3_e30.glb'
+    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/bmw.glb'
   },
   {
     id: 'mercedes',
     name: 'Mercedes AMG (Upload Required)',
-    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/cliffs_mercedes_v8_biturbo.glb'
+    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/mercedes.glb'
   },
-  {
-    id: 'porsche',
-    name: 'Porsche 911 (Upload Required)',
-    url: 'https://github.com/baraasowwan1/octobous/blob/main/public/free_porsche_911_carrera_4s.glb'
-  }
 ];
 
 export function CarConfigurator() {
