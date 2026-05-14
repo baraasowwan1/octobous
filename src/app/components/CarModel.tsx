@@ -5,9 +5,8 @@ import * as THREE from 'three';
 export function CarModel({ color = '#ff0000', ...props }: { color?: string; [key: string]: any }) {
   const group = useRef<THREE.Group>(null);
   
-  // We reverted to the Ferrari model from three.js because the local /defender.glb was missing and crashing the site.
-  // To use your own defender, change the URL below back to '/defender.glb' ONLY AFTER you have successfully placed the file in your "public" folder.
-  const modelUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/ferrari.glb';
+  // Using the Defender model uploaded to GitHub
+  const modelUrl = 'https://raw.githubusercontent.com/baraasowwan1/octobous/main/public/defender.gltf';
   const { nodes, materials } = useGLTF(modelUrl) as any;
   
   // Update colors safely when the color prop changes
@@ -47,4 +46,4 @@ export function CarModel({ color = '#ff0000', ...props }: { color?: string; [key
   );
 }
 
-useGLTF.preload('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/ferrari.glb');
+useGLTF.preload('https://raw.githubusercontent.com/baraasowwan1/octobous/main/public/defender.gltf');
