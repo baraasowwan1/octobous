@@ -76,20 +76,30 @@ export function CarModel({
           if (hsl.l < 0.15) return; // Luminance is very low, it's dark trim.
         }
 
-        // Strip away any baked-in color maps (dirt, baked lighting) so the pure color pops!
-        const clearMap = null;
-
         // If it passed the above filters, it is almost certainly a painted body panel!
-        child.material = new THREE.MeshPhysicalMaterial({
-          color: new THREE.Color(color),
-          map: clearMap,          // Ensure no texture overrides our pure color
-          metalness: 0.7,         // Realistic metallic car paint
-          roughness: 0.15,        // Very smooth
-          clearcoat: 1.0,         // Thick clearcoat layer
-          clearcoatRoughness: 0.1,// Smooth clearcoat
-          envMapIntensity: 2.0    // Strong reflections from the environment
-        });
+        // We clone the original material to preserve its details (like Normal Maps for panel gaps)
+        const originalMat = child.material.clone();
         
+        // Upgrade to a highly realistic PhysicalMaterial if it isn't one already
+        if (originalMat.isMeshStandardMaterial && !originalMat.isMeshPhysicalMaterial) {
+          child.material = new THREE.MeshPhysicalMaterial().copy(originalMat);
+        } else {
+          child.material = originalMat;
+        }
+
+        // Apply our custom paint over the existing detailed material
+        child.material.color = new THREE.Color(color);
+        child.material.map = null; // Strip the base color map so our custom color pops
+        
+        child.material.metalness = 0.7; // Realistic metallic car paint
+        child.material.roughness = 0.15; // Very smooth
+        
+        if (child.material.isMeshPhysicalMaterial) {
+          child.material.clearcoat = 1.0; // Thick clearcoat layer
+          child.material.clearcoatRoughness = 0.1; // Smooth clearcoat
+        }
+        
+        child.material.envMapIntensity = 2.0; // Strong reflections from the environment
         child.material.needsUpdate = true;
       }
     });
