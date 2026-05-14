@@ -57,4 +57,4 @@ export function CarModel({
 }
 
 // Preload model
-useGLTF.preload('/models/defender.gltf');
+useGLTF.preload('/defender.gltf');
