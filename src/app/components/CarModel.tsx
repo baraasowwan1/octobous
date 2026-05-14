@@ -52,10 +52,14 @@ export function CarModel({
         child.castShadow = true;
         child.receiveShadow = true;
 
-        // Skip transparent materials (glass, windows, headlights)
-        if (child.material.transparent || child.material.opacity < 1) return;
+        // Extract the material safely (in case the model uses an array of materials)
+        const mat = Array.isArray(child.material) ? child.material[0] : child.material;
+        if (!mat || typeof mat.clone !== 'function') return;
 
-        const materialName = child.material.name?.toLowerCase?.() || '';
+        // Skip transparent materials (glass, windows, headlights)
+        if (mat.transparent || mat.opacity < 1) return;
+
+        const materialName = mat.name?.toLowerCase?.() || '';
         const meshName = child.name?.toLowerCase?.() || '';
 
         // Skip obvious non-paint parts by name
@@ -71,36 +75,43 @@ export function CarModel({
 
         // Skip very dark materials (usually plastic trims, grilles, undercarriage)
         const hsl = { h: 0, s: 0, l: 0 };
-        if (child.material.color) {
-          child.material.color.getHSL(hsl);
+        if (mat.color) {
+          mat.color.getHSL(hsl);
           if (hsl.l < 0.15) return; // Luminance is very low, it's dark trim.
         }
 
-        // If it passed the above filters, it is almost certainly a painted body panel!
         // We clone the original material to preserve its details (like Normal Maps for panel gaps)
-        const originalMat = child.material.clone();
+        const originalMat = mat.clone();
         
         // Upgrade to a highly realistic PhysicalMaterial if it isn't one already
+        let newMat;
         if (originalMat.isMeshStandardMaterial && !originalMat.isMeshPhysicalMaterial) {
-          child.material = new THREE.MeshPhysicalMaterial().copy(originalMat);
+          newMat = new THREE.MeshPhysicalMaterial().copy(originalMat);
         } else {
-          child.material = originalMat;
+          newMat = originalMat;
         }
 
         // Apply our custom paint over the existing detailed material
-        child.material.color = new THREE.Color(color);
-        child.material.map = null; // Strip the base color map so our custom color pops
+        newMat.color = new THREE.Color(color);
+        newMat.map = null; // Strip the base color map so our custom color pops
         
-        child.material.metalness = 0.7; // Realistic metallic car paint
-        child.material.roughness = 0.15; // Very smooth
+        newMat.metalness = 0.7; // Realistic metallic car paint
+        newMat.roughness = 0.15; // Very smooth
         
-        if (child.material.isMeshPhysicalMaterial) {
-          child.material.clearcoat = 1.0; // Thick clearcoat layer
-          child.material.clearcoatRoughness = 0.1; // Smooth clearcoat
+        if (newMat.isMeshPhysicalMaterial) {
+          newMat.clearcoat = 1.0; // Thick clearcoat layer
+          newMat.clearcoatRoughness = 0.1; // Smooth clearcoat
         }
         
-        child.material.envMapIntensity = 2.0; // Strong reflections from the environment
-        child.material.needsUpdate = true;
+        newMat.envMapIntensity = 2.0; // Strong reflections from the environment
+        newMat.needsUpdate = true;
+        
+        // Safely reassign the updated material
+        if (Array.isArray(child.material)) {
+           child.material[0] = newMat;
+        } else {
+           child.material = newMat;
+        }
       }
     });
   }, [clonedScene, color]);
