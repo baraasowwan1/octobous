@@ -46,15 +46,15 @@ export function CarModel({
     clonedScene.position.z -= center.z;
     clonedScene.position.y -= bottomY; 
 
-    // --- 2. DETECT AND UPDATE CAR PAINT FOR THE ENTIRE BODY ---
+    // --- 2. DETECT AND UPDATE CAR PAINT (SAFE METHOD) ---
     clonedScene.traverse((child: any) => {
       if (child.isMesh && child.material) {
         child.castShadow = true;
         child.receiveShadow = true;
 
-        // Extract the material safely (in case the model uses an array of materials)
+        // Extract the material safely
         const mat = Array.isArray(child.material) ? child.material[0] : child.material;
-        if (!mat || typeof mat.clone !== 'function') return;
+        if (!mat) return;
 
         // Skip transparent materials (glass, windows, headlights)
         if (mat.transparent || mat.opacity < 1) return;
@@ -80,31 +80,20 @@ export function CarModel({
           if (hsl.l < 0.15) return; // Luminance is very low, it's dark trim.
         }
 
-        // We clone the original material to preserve its details (like Normal Maps for panel gaps)
-        const originalMat = mat.clone();
-        
-        // Upgrade to a highly realistic PhysicalMaterial if it isn't one already
-        let newMat;
-        if (originalMat.isMeshStandardMaterial && !originalMat.isMeshPhysicalMaterial) {
-          newMat = new THREE.MeshPhysicalMaterial().copy(originalMat);
-        } else {
-          newMat = originalMat;
-        }
+        // CREATE A BULLETPROOF, SAFE CAR PAINT MATERIAL
+        const newMat = new THREE.MeshPhysicalMaterial({
+          color: new THREE.Color(color),
+          metalness: 0.7,         // Realistic metallic car paint
+          roughness: 0.15,        // Very smooth
+          clearcoat: 1.0,         // Thick clearcoat layer
+          clearcoatRoughness: 0.1,// Smooth clearcoat
+          envMapIntensity: 2.0    // Strong reflections from the environment
+        });
 
-        // Apply our custom paint over the existing detailed material
-        newMat.color = new THREE.Color(color);
-        newMat.map = null; // Strip the base color map so our custom color pops
-        
-        newMat.metalness = 0.7; // Realistic metallic car paint
-        newMat.roughness = 0.15; // Very smooth
-        
-        if (newMat.isMeshPhysicalMaterial) {
-          newMat.clearcoat = 1.0; // Thick clearcoat layer
-          newMat.clearcoatRoughness = 0.1; // Smooth clearcoat
-        }
-        
-        newMat.envMapIntensity = 2.0; // Strong reflections from the environment
-        newMat.needsUpdate = true;
+        // SAFELY COPY OVER TEXTURE MAPS (to preserve realistic panel gaps)
+        if (mat.normalMap) newMat.normalMap = mat.normalMap;
+        if (mat.aoMap) newMat.aoMap = mat.aoMap;
+        if (mat.roughnessMap) newMat.roughnessMap = mat.roughnessMap;
         
         // Safely reassign the updated material
         if (Array.isArray(child.material)) {
