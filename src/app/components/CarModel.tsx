@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -16,36 +16,38 @@ export function CarModel({
   const group = useRef<THREE.Group>(null);
 
   const gltf = useGLTF(modelUrl) as any;
-
   const { scene } = gltf;
 
+  // Clone the scene so we don't mutate the cached model across swaps
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
   useEffect(() => {
-    if (!scene) return;
+    if (!clonedScene) return;
 
     // --- 1. NORMALIZE DIMENSIONS AND CENTER THE CAR ---
-    scene.scale.set(1, 1, 1);
-    scene.position.set(0, 0, 0);
+    clonedScene.scale.set(1, 1, 1);
+    clonedScene.position.set(0, 0, 0);
 
-    const box = new THREE.Box3().setFromObject(scene);
+    const box = new THREE.Box3().setFromObject(clonedScene);
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     
     if (maxDim > 0) {
       const desiredSize = 4.5; 
       const scale = desiredSize / maxDim;
-      scene.scale.setScalar(scale);
+      clonedScene.scale.setScalar(scale);
     }
 
-    const newBox = new THREE.Box3().setFromObject(scene);
+    const newBox = new THREE.Box3().setFromObject(clonedScene);
     const center = newBox.getCenter(new THREE.Vector3());
     const bottomY = newBox.min.y;
     
-    scene.position.x -= center.x;
-    scene.position.z -= center.z;
-    scene.position.y -= bottomY; 
+    clonedScene.position.x -= center.x;
+    clonedScene.position.z -= center.z;
+    clonedScene.position.y -= bottomY; 
 
     // --- 2. DETECT AND UPDATE CAR PAINT FOR THE ENTIRE BODY ---
-    scene.traverse((child: any) => {
+    clonedScene.traverse((child: any) => {
       if (child.isMesh && child.material) {
         child.castShadow = true;
         child.receiveShadow = true;
@@ -74,22 +76,20 @@ export function CarModel({
           if (hsl.l < 0.15) return; // Luminance is very low, it's dark trim.
         }
 
+        // Strip away any baked-in color maps (dirt, baked lighting) so the pure color pops!
+        const clearMap = null;
+
         // If it passed the above filters, it is almost certainly a painted body panel!
         child.material = new THREE.MeshPhysicalMaterial({
           color: new THREE.Color(color),
+          map: clearMap,          // Ensure no texture overrides our pure color
           metalness: 0.7,         // Realistic metallic car paint
           roughness: 0.15,        // Very smooth
           clearcoat: 1.0,         // Thick clearcoat layer
           clearcoatRoughness: 0.1,// Smooth clearcoat
           envMapIntensity: 2.0    // Strong reflections from the environment
         });
+        
+        child.material.needsUpdate = true;
       }
     });
-  }, [scene, color]);
-
-  return (
-    <group ref={group} {...props} dispose={null}>
-      <primitive object={scene} />
-    </group>
-  );
-}
