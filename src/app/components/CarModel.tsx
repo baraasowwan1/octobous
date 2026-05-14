@@ -4,22 +4,18 @@ import * as THREE from 'three';
 
 type CarModelProps = {
   color?: string;
+  modelUrl: string;
   [key: string]: any;
 };
 
 export function CarModel({
   color = '#ff0000',
+  modelUrl,
   ...props
 }: CarModelProps) {
   const group = useRef<THREE.Group>(null);
 
-  // IMPORTANT:
-  // Put defender.gltf + scene.bin + textures inside:
-  // public/
-
-  const modelPath = 'https://raw.githubusercontent.com/baraasowwan1/octobous/main/public/defender.gltf';
-
-  const gltf = useGLTF(modelPath) as any;
+  const gltf = useGLTF(modelUrl) as any;
 
   const { scene } = gltf;
 
@@ -97,6 +93,3 @@ export function CarModel({
     </group>
   );
 }
-
-// Preload model
-useGLTF.preload('https://raw.githubusercontent.com/baraasowwan1/octobous/main/public/defender.gltf');
