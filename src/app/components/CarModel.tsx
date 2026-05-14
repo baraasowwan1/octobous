@@ -17,7 +17,7 @@ export function CarModel({
   // Put defender.gltf + scene.bin + textures inside:
   // public/models/
 
-  const modelPath = '/models/defender.gltf';
+  const modelPath = '/defender.gltf';
 
   const gltf = useGLTF(modelPath) as any;
 
