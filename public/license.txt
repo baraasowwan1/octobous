@@ -1,0 +1,11 @@
+Model Information:
+* title:	Land Rover  Defender 110
+* source:	https://sketchfab.com/3d-models/land-rover-defender-110-df39d84cc8d04887801052e6900cb269
+* author:	@ShreyanshChaurasia_13 (https://sketchfab.com/shreyanshchaurasia13)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Land Rover  Defender 110" (https://sketchfab.com/3d-models/land-rover-defender-110-df39d84cc8d04887801052e6900cb269) by @ShreyanshChaurasia_13 (https://sketchfab.com/shreyanshchaurasia13) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
