@@ -27,7 +27,6 @@ export function CarModel({
     if (!scene) return;
 
     // --- 1. NORMALIZE DIMENSIONS AND CENTER THE CAR ---
-    // Reset any previous scale/position changes
     scene.scale.set(1, 1, 1);
     scene.position.set(0, 0, 0);
 
@@ -35,14 +34,12 @@ export function CarModel({
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     
-    // Normalize to a consistent size (e.g. 4 units long)
     if (maxDim > 0) {
       const desiredSize = 4.5; 
       const scale = desiredSize / maxDim;
       scene.scale.setScalar(scale);
     }
 
-    // Center it horizontally, and place the bottom exactly at Y=0
     const newBox = new THREE.Box3().setFromObject(scene);
     const center = newBox.getCenter(new THREE.Vector3());
     const bottomY = newBox.min.y;
@@ -51,50 +48,45 @@ export function CarModel({
     scene.position.z -= center.z;
     scene.position.y -= bottomY; 
 
-    // --- 2. DETECT AND UPDATE CAR PAINT MATERIAL ---
-    let largestMesh: any = null;
-    let maxVerts = 0;
-
-    // Find the largest opaque mesh (usually the main car body)
-    scene.traverse((child: any) => {
-      if (child.isMesh && child.geometry && child.material && !child.material.transparent) {
-         const verts = child.geometry.attributes.position.count;
-         if (verts > maxVerts) {
-           maxVerts = verts;
-           largestMesh = child;
-         }
-      }
-    });
-
-    const targetMaterialName = largestMesh ? largestMesh.material.name : '';
-
+    // --- 2. DETECT AND UPDATE CAR PAINT FOR THE ENTIRE BODY ---
     scene.traverse((child: any) => {
       if (child.isMesh && child.material) {
         child.castShadow = true;
         child.receiveShadow = true;
 
+        // Skip transparent materials (glass, windows, headlights)
+        if (child.material.transparent || child.material.opacity < 1) return;
+
         const materialName = child.material.name?.toLowerCase?.() || '';
         const meshName = child.name?.toLowerCase?.() || '';
 
-        // Check if this mesh shares the largest mesh's material, OR matches name heuristics
-        const isBody = 
-          (targetMaterialName && child.material.name === targetMaterialName) ||
-          materialName.includes('body') ||
-          materialName.includes('paint') ||
-          materialName.includes('car') ||
-          meshName.includes('body');
-
-        if (isBody) {
-          child.material = child.material.clone();
-          child.material.color = new THREE.Color(color);
-          
-          // Make it look like glossy car paint
-          if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
-            child.material.roughness = 0.2;
-            child.material.metalness = 0.6;
-          }
-          child.material.needsUpdate = true;
+        // Skip obvious non-paint parts by name
+        if (
+          materialName.includes('glass') || materialName.includes('tire') || 
+          materialName.includes('wheel') || materialName.includes('rubber') || 
+          materialName.includes('interior') || materialName.includes('chrome') || 
+          materialName.includes('black') || meshName.includes('tire') || 
+          meshName.includes('wheel')
+        ) {
+          return;
         }
+
+        // Skip very dark materials (usually plastic trims, grilles, undercarriage)
+        const hsl = { h: 0, s: 0, l: 0 };
+        if (child.material.color) {
+          child.material.color.getHSL(hsl);
+          if (hsl.l < 0.15) return; // Luminance is very low, it's dark trim.
+        }
+
+        // If it passed the above filters, it is almost certainly a painted body panel!
+        child.material = new THREE.MeshPhysicalMaterial({
+          color: new THREE.Color(color),
+          metalness: 0.7,         // Realistic metallic car paint
+          roughness: 0.15,        // Very smooth
+          clearcoat: 1.0,         // Thick clearcoat layer
+          clearcoatRoughness: 0.1,// Smooth clearcoat
+          envMapIntensity: 2.0    // Strong reflections from the environment
+        });
       }
     });
   }, [scene, color]);
