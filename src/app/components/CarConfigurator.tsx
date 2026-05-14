@@ -25,6 +25,21 @@ const availableCars = [
     id: 'ferrari',
     name: 'Ferrari 458 Italia',
     url: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/ferrari.glb'
+  },
+  {
+    id: 'bmw',
+    name: 'BMW M4 (Upload Required)',
+    url: '/bmw.glb'
+  },
+  {
+    id: 'mercedes',
+    name: 'Mercedes AMG (Upload Required)',
+    url: '/mercedes.glb'
+  },
+  {
+    id: 'porsche',
+    name: 'Porsche 911 (Upload Required)',
+    url: '/porsche.glb'
   }
 ];
 
@@ -70,25 +85,28 @@ export function CarConfigurator() {
       {/* Glassmorphism UI Overlay */}
       <div className="absolute bottom-6 md:bottom-10 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-xl p-4 md:p-6 rounded-3xl border border-white/20 shadow-2xl flex flex-col items-center gap-4 md:gap-6 z-20 w-[95%] md:w-11/12 max-w-2xl pointer-events-auto">
         
-        {/* Car Selector */}
+        {/* Dropdown Car Selector */}
         <div className="w-full flex flex-col items-center gap-3 border-b border-white/10 pb-5">
-           <h3 className="text-white/80 font-bold text-xs md:text-sm tracking-wider uppercase flex items-center gap-2">
+           <label htmlFor="car-select" className="text-white/80 font-bold text-xs md:text-sm tracking-wider uppercase flex items-center gap-2 cursor-pointer">
              <Car className="w-4 h-4" /> Select Vehicle
-           </h3>
-           <div className="flex gap-2 md:gap-3 flex-wrap justify-center">
-             {availableCars.map((car, idx) => (
-               <button
-                 key={car.id}
-                 onClick={() => setSelectedCarIndex(idx)}
-                 className={`px-4 md:px-6 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 ${
-                   selectedCarIndex === idx 
-                     ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] scale-105' 
-                     : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-                 }`}
-               >
-                 {car.name}
-               </button>
-             ))}
+           </label>
+           <div className="relative w-full max-w-xs">
+             <select 
+               id="car-select"
+               value={selectedCarIndex}
+               onChange={(e) => setSelectedCarIndex(Number(e.target.value))}
+               className="w-full appearance-none bg-black/60 text-white border border-white/20 rounded-xl px-4 py-3 text-center text-sm md:text-base font-semibold outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all cursor-pointer shadow-inner"
+             >
+               {availableCars.map((car, idx) => (
+                 <option key={car.id} value={idx} className="bg-gray-900 text-white">
+                   {car.name}
+                 </option>
+               ))}
+             </select>
+             {/* Custom Dropdown Arrow */}
+             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+             </div>
            </div>
         </div>
 
@@ -96,21 +114,3 @@ export function CarConfigurator() {
         <div className="w-full flex flex-col items-center gap-2">
           <h3 className="text-white font-bold text-base md:text-xl tracking-wider uppercase">Choose Your Wrap</h3>
           <p className="text-white/50 text-[10px] md:text-sm mb-1 text-center">Interact with the 3D model to view from all angles.</p>
-          <div className="flex gap-3 md:gap-4 flex-wrap justify-center mt-1">
-            {colors.map((c) => (
-              <motion.button
-                key={c.value}
-                whileHover={{ scale: 1.15 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setCarColor(c.value)}
-                className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-4 transition-all shadow-lg ${carColor === c.value ? 'border-white scale-110' : 'border-transparent opacity-80 hover:opacity-100'}`}
-                style={{ backgroundColor: c.value }}
-                title={c.name}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
