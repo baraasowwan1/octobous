@@ -93,3 +93,11 @@ export function CarModel({
         child.material.needsUpdate = true;
       }
     });
+  }, [clonedScene, color]);
+
+  return (
+    <group ref={group} {...props} dispose={null}>
+      <primitive object={clonedScene} />
+    </group>
+  );
+}
