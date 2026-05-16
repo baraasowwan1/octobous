@@ -123,26 +123,67 @@ export function CarColorVisualizer() {
                 className="w-full max-h-[600px] object-contain relative z-10" 
               />
               
-              {/* Color overlay with mix-blend-mode and masking */}
+              {/* Realistic Car Wrap Simulation Layers */}
               {!isProcessing && color !== 'transparent' && (
-                <div 
-                  className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
-                  style={{ 
-                    backgroundColor: color, 
-                    mixBlendMode: 'color',
-                    ...(carMaskUrl ? {
-                      WebkitMaskImage: `url(${carMaskUrl})`,
-                      WebkitMaskSize: 'contain',
-                      WebkitMaskPosition: 'center',
-                      WebkitMaskRepeat: 'no-repeat',
-                      maskImage: `url(${carMaskUrl})`,
-                      maskSize: 'contain',
-                      maskPosition: 'center',
-                      maskRepeat: 'no-repeat',
-                    } : {}),
-                    opacity: 0.85
-                  }}
-                />
+                <>
+                  {/* Layer 1: Base Color (Changes Hue and Saturation, opacity 1 for full color replacement) */}
+                  <div 
+                    className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
+                    style={{ 
+                      backgroundColor: color, 
+                      mixBlendMode: 'color',
+                      ...(carMaskUrl ? {
+                        WebkitMaskImage: `url(${carMaskUrl})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskPosition: 'center',
+                        WebkitMaskRepeat: 'no-repeat',
+                        maskImage: `url(${carMaskUrl})`,
+                        maskSize: 'contain',
+                        maskPosition: 'center',
+                        maskRepeat: 'no-repeat',
+                      } : {}),
+                      opacity: 1
+                    }}
+                  />
+                  {/* Layer 2: Multiply (Adds depth, shadows, and richness to the paint) */}
+                  <div 
+                    className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
+                    style={{ 
+                      backgroundColor: color, 
+                      mixBlendMode: 'multiply',
+                      ...(carMaskUrl ? {
+                        WebkitMaskImage: `url(${carMaskUrl})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskPosition: 'center',
+                        WebkitMaskRepeat: 'no-repeat',
+                        maskImage: `url(${carMaskUrl})`,
+                        maskSize: 'contain',
+                        maskPosition: 'center',
+                        maskRepeat: 'no-repeat',
+                      } : {}),
+                      opacity: 0.35
+                    }}
+                  />
+                  {/* Layer 3: Soft Light (Enhances reflections, metallic feel, and contrast) */}
+                  <div 
+                    className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
+                    style={{ 
+                      backgroundColor: color, 
+                      mixBlendMode: 'soft-light',
+                      ...(carMaskUrl ? {
+                        WebkitMaskImage: `url(${carMaskUrl})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskPosition: 'center',
+                        WebkitMaskRepeat: 'no-repeat',
+                        maskImage: `url(${carMaskUrl})`,
+                        maskSize: 'contain',
+                        maskPosition: 'center',
+                        maskRepeat: 'no-repeat',
+                      } : {}),
+                      opacity: 0.5
+                    }}
+                  />
+                </>
               )}
             </div>
             
