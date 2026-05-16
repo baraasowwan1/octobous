@@ -126,26 +126,7 @@ export function CarColorVisualizer() {
               {/* Realistic Car Wrap Simulation Layers */}
               {!isProcessing && color !== 'transparent' && (
                 <>
-                  {/* Layer 1: Base Color (Changes Hue and Saturation, opacity 1 for full color replacement) */}
-                  <div 
-                    className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
-                    style={{ 
-                      backgroundColor: color, 
-                      mixBlendMode: 'color',
-                      ...(carMaskUrl ? {
-                        WebkitMaskImage: `url(${carMaskUrl})`,
-                        WebkitMaskSize: 'contain',
-                        WebkitMaskPosition: 'center',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskImage: `url(${carMaskUrl})`,
-                        maskSize: 'contain',
-                        maskPosition: 'center',
-                        maskRepeat: 'no-repeat',
-                      } : {}),
-                      opacity: 1
-                    }}
-                  />
-                  {/* Layer 2: Multiply (Adds depth, shadows, and richness to the paint) */}
+                  {/* Layer 1: Multiply (Burns the color into midtones and shadows, perfect for white/grey cars) */}
                   <div 
                     className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
                     style={{ 
@@ -161,15 +142,16 @@ export function CarColorVisualizer() {
                         maskPosition: 'center',
                         maskRepeat: 'no-repeat',
                       } : {}),
-                      opacity: 0.35
+                      opacity: 0.7
                     }}
                   />
-                  {/* Layer 3: Soft Light (Enhances reflections, metallic feel, and contrast) */}
+                  
+                  {/* Layer 2: Color (Enforces the correct hue, but lets some original environmental reflections bleed through) */}
                   <div 
                     className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
                     style={{ 
                       backgroundColor: color, 
-                      mixBlendMode: 'soft-light',
+                      mixBlendMode: 'color',
                       ...(carMaskUrl ? {
                         WebkitMaskImage: `url(${carMaskUrl})`,
                         WebkitMaskSize: 'contain',
@@ -180,7 +162,51 @@ export function CarColorVisualizer() {
                         maskPosition: 'center',
                         maskRepeat: 'no-repeat',
                       } : {}),
-                      opacity: 0.5
+                      opacity: 0.6
+                    }}
+                  />
+
+                  {/* Layer 3: Specular Highlights (Restores the glossy/metallic reflections using the original image) */}
+                  {carMaskUrl && (
+                    <div 
+                      className="absolute inset-0 pointer-events-none z-20"
+                      style={{ 
+                        backgroundImage: `url(${image})`,
+                        backgroundSize: 'contain',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        mixBlendMode: 'screen',
+                        filter: 'grayscale(1) contrast(1.8) brightness(0.4)',
+                        opacity: 0.6,
+                        WebkitMaskImage: `url(${carMaskUrl})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskPosition: 'center',
+                        WebkitMaskRepeat: 'no-repeat',
+                        maskImage: `url(${carMaskUrl})`,
+                        maskSize: 'contain',
+                        maskPosition: 'center',
+                        maskRepeat: 'no-repeat',
+                      }}
+                    />
+                  )}
+                  
+                  {/* Layer 4: Overlay (Adds a final punch of contrast and metallic pop) */}
+                  <div 
+                    className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
+                    style={{ 
+                      backgroundColor: color, 
+                      mixBlendMode: 'overlay',
+                      ...(carMaskUrl ? {
+                        WebkitMaskImage: `url(${carMaskUrl})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskPosition: 'center',
+                        WebkitMaskRepeat: 'no-repeat',
+                        maskImage: `url(${carMaskUrl})`,
+                        maskSize: 'contain',
+                        maskPosition: 'center',
+                        maskRepeat: 'no-repeat',
+                      } : {}),
+                      opacity: 0.3
                     }}
                   />
                 </>
