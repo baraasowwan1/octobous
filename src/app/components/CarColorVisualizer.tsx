@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Upload } from 'lucide-react';
+import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import imglyRemoveBackground from '@imgly/background-removal';
 
 const SUGGESTED_COLORS = [
   { name: 'Satin Pearl White', value: '#f4f6f7' },
@@ -16,14 +17,38 @@ const SUGGESTED_COLORS = [
 export function CarColorVisualizer() {
   const { t } = useLanguage();
   const [image, setImage] = useState<string | null>(null);
+  const [carMaskUrl, setCarMaskUrl] = useState<string | null>(null);
   const [color, setColor] = useState<string>('transparent');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const processImage = async (file: File) => {
+    setIsProcessing(true);
+    setErrorMsg(null);
+    setImage(URL.createObjectURL(file));
+    setCarMaskUrl(null);
+    setColor('transparent');
+    
+    try {
+      const imageBlob = await imglyRemoveBackground(file);
+      const url = URL.createObjectURL(imageBlob);
+      setCarMaskUrl(url);
+    } catch (err) {
+      console.error("Background removal failed:", err);
+      setErrorMsg("Failed to isolate the car. The color effect will apply to the whole image instead.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
-      setColor('transparent');
+      processImage(file);
+    }
+    if (e.target) {
+        e.target.value = '';
     }
   };
 
@@ -35,9 +60,15 @@ export function CarColorVisualizer() {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      setImage(URL.createObjectURL(file));
-      setColor('transparent');
+      processImage(file);
     }
+  };
+
+  const handleReset = () => {
+    setImage(null);
+    setCarMaskUrl(null);
+    setColor('transparent');
+    setErrorMsg(null);
   };
 
   return (
@@ -73,27 +104,54 @@ export function CarColorVisualizer() {
         </div>
       ) : (
         <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col gap-4">
             <div className="relative rounded-xl overflow-hidden shadow-inner bg-background/50 flex items-center justify-center min-h-[300px]">
+              {isProcessing && (
+                <div className="absolute inset-0 z-30 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center">
+                  <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+                  <p className="text-lg font-medium animate-pulse">Analyzing car shape with AI...</p>
+                  <p className="text-sm text-muted-foreground mt-2 max-w-xs text-center">This runs entirely in your browser and might take a few seconds on the first run.</p>
+                </div>
+              )}
+              
               <img 
                 src={image} 
                 alt="Uploaded car" 
                 className="w-full max-h-[600px] object-contain relative z-10" 
               />
-              {/* Color overlay with mix-blend-mode */}
-              {color !== 'transparent' && (
+              
+              {/* Color overlay with mix-blend-mode and masking */}
+              {!isProcessing && color !== 'transparent' && (
                 <div 
                   className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
                   style={{ 
                     backgroundColor: color, 
                     mixBlendMode: 'color',
-                    opacity: 0.8
+                    ...(carMaskUrl ? {
+                      WebkitMaskImage: `url(${carMaskUrl})`,
+                      WebkitMaskSize: 'contain',
+                      WebkitMaskPosition: 'center',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskImage: `url(${carMaskUrl})`,
+                      maskSize: 'contain',
+                      maskPosition: 'center',
+                      maskRepeat: 'no-repeat',
+                    } : {}),
+                    opacity: 0.85
                   }}
                 />
               )}
             </div>
-            <p className="text-sm text-center text-muted-foreground mt-4 italic">
-              Note: This is a basic visualization. Actual wrap results may vary based on lighting and original car color.
+            
+            {errorMsg && (
+              <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <p>{errorMsg}</p>
+              </div>
+            )}
+            
+            <p className="text-sm text-center text-muted-foreground italic">
+              Note: This visualization uses an AI model to isolate the car. Actual wrap results may vary based on lighting and original car color.
             </p>
           </div>
           
@@ -102,7 +160,8 @@ export function CarColorVisualizer() {
             
             <div className="grid grid-cols-4 lg:grid-cols-2 gap-4">
               <button 
-                className={`flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all ${color === 'transparent' ? 'border-primary bg-primary/10' : 'border-transparent hover:border-primary/50 hover:bg-background'}`}
+                disabled={isProcessing}
+                className={`flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all ${color === 'transparent' ? 'border-primary bg-primary/10' : 'border-transparent hover:border-primary/50 hover:bg-background'} ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => setColor('transparent')}
                 title="Original Color"
               >
@@ -115,7 +174,8 @@ export function CarColorVisualizer() {
               {SUGGESTED_COLORS.map(c => (
                 <button
                   key={c.name}
-                  className={`flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all ${color === c.value ? 'border-primary bg-primary/10 scale-105 shadow-md' : 'border-transparent hover:border-primary/50 hover:bg-background'}`}
+                  disabled={isProcessing}
+                  className={`flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all ${color === c.value ? 'border-primary bg-primary/10 scale-105 shadow-md' : 'border-transparent hover:border-primary/50 hover:bg-background'} ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                   onClick={() => setColor(c.value)}
                   title={c.name}
                 >
@@ -131,10 +191,7 @@ export function CarColorVisualizer() {
             <div className="mt-auto pt-6 border-t border-primary/20">
               <button 
                 className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all font-semibold flex items-center justify-center gap-2"
-                onClick={() => {
-                  setImage(null);
-                  setColor('transparent');
-                }}
+                onClick={handleReset}
               >
                 <Upload className="w-4 h-4" />
                 Upload New Photo
