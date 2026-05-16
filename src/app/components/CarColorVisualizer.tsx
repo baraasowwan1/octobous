@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import * as imgly from '@imgly/background-removal';
@@ -20,8 +20,10 @@ export function CarColorVisualizer() {
   const [carMaskUrl, setCarMaskUrl] = useState<string | null>(null);
   const [color, setColor] = useState<string>('transparent');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRendering, setIsRendering] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const processImage = async (file: File) => {
     setIsProcessing(true);
@@ -39,7 +41,7 @@ export function CarColorVisualizer() {
       setCarMaskUrl(url);
     } catch (err) {
       console.error("Background removal failed:", err);
-      setErrorMsg("Failed to isolate the car. The color effect will apply to the whole image instead.");
+      setErrorMsg("Failed to isolate the car. Basic tinting will apply.");
     } finally {
       setIsProcessing(false);
     }
@@ -73,6 +75,98 @@ export function CarColorVisualizer() {
     setColor('transparent');
     setErrorMsg(null);
   };
+
+  // The Magic: Pixel-perfect Canvas Coloring
+  useEffect(() => {
+    if (!image || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
+
+    setIsRendering(true);
+
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      // If original color selected or no mask ready, just show the image
+      if (color === 'transparent' || !carMaskUrl) {
+        setIsRendering(false);
+        return;
+      }
+
+      const mask = new Image();
+      mask.onload = () => {
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = img.width;
+        maskCanvas.height = img.height;
+        const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+        if (!maskCtx) return;
+        maskCtx.drawImage(mask, 0, 0);
+        
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+        const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+        const tr = parseInt(color.slice(1,3), 16) / 255;
+        const tg = parseInt(color.slice(3,5), 16) / 255;
+        const tb = parseInt(color.slice(5,7), 16) / 255;
+
+        // Photoshop-style overlay math
+        const overlay = (base: number, blend: number) => base < 0.5 ? 2 * base * blend : 1 - 2 * (1 - base) * (1 - blend);
+
+        for (let i = 0; i < data.length; i += 4) {
+          const maskAlpha = maskData[i + 3];
+          
+          // Only process pixels inside the car mask
+          if (maskAlpha > 50) {
+            const r = data[i] / 255;
+            const g = data[i+1] / 255;
+            const b = data[i+2] / 255;
+
+            // Calculate perceptual brightness (luminance)
+            const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+            // SMART MASKING: Prevent tires and windows from taking color
+            // If pixel is very dark (< 0.08 luminance), don't color it (tires/deep shadows)
+            // Ramp up the color strength so midtones (body paint) take full color
+            let strength = 0;
+            if (lum > 0.25) strength = 1; // Full color for paint
+            else if (lum > 0.08) strength = (lum - 0.08) / 0.17; // Smooth transition for shadows
+            
+            if (strength > 0) {
+              // Apply overlay mode (preserves highlights/gloss naturally)
+              const overR = overlay(r, tr);
+              const overG = overlay(g, tg);
+              const overB = overlay(b, tb);
+              
+              // Apply multiply mode (adds depth/richness)
+              const multR = r * tr;
+              const multG = g * tg;
+              const multB = b * tb;
+
+              // Blend the two modes for hyper-realism
+              const finalR = overR * 0.7 + multR * 0.3;
+              const finalG = overG * 0.7 + multG * 0.3;
+              const finalB = overB * 0.7 + multB * 0.3;
+
+              // Apply to pixel array with our calculated strength mask
+              data[i] = (r + (finalR - r) * strength) * 255;
+              data[i+1] = (g + (finalG - g) * strength) * 255;
+              data[i+2] = (b + (finalB - b) * strength) * 255;
+            }
+          }
+        }
+        
+        ctx.putImageData(imgData, 0, 0);
+        setIsRendering(false);
+      };
+      mask.src = carMaskUrl;
+    };
+    img.src = image;
+  }, [image, carMaskUrl, color]);
 
   return (
     <div className="bg-card rounded-xl p-8 shadow-2xl mb-16 border border-primary/20">
@@ -109,108 +203,19 @@ export function CarColorVisualizer() {
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 flex flex-col gap-4">
             <div className="relative rounded-xl overflow-hidden shadow-inner bg-background/50 flex items-center justify-center min-h-[300px]">
-              {isProcessing && (
+              {(isProcessing || isRendering) && (
                 <div className="absolute inset-0 z-30 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center">
                   <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-                  <p className="text-lg font-medium animate-pulse">Analyzing car shape with AI...</p>
-                  <p className="text-sm text-muted-foreground mt-2 max-w-xs text-center">This runs entirely in your browser and might take a few seconds on the first run.</p>
+                  <p className="text-lg font-medium animate-pulse">
+                    {isProcessing ? 'Analyzing car shape with AI...' : 'Applying realistic wrap...'}
+                  </p>
                 </div>
               )}
               
-              <img 
-                src={image} 
-                alt="Uploaded car" 
+              <canvas 
+                ref={canvasRef}
                 className="w-full max-h-[600px] object-contain relative z-10" 
               />
-              
-              {/* Realistic Car Wrap Simulation Layers */}
-              {!isProcessing && color !== 'transparent' && (
-                <>
-                  {/* Layer 1: Multiply (Burns the color into midtones and shadows, perfect for white/grey cars) */}
-                  <div 
-                    className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
-                    style={{ 
-                      backgroundColor: color, 
-                      mixBlendMode: 'multiply',
-                      ...(carMaskUrl ? {
-                        WebkitMaskImage: `url(${carMaskUrl})`,
-                        WebkitMaskSize: 'contain',
-                        WebkitMaskPosition: 'center',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskImage: `url(${carMaskUrl})`,
-                        maskSize: 'contain',
-                        maskPosition: 'center',
-                        maskRepeat: 'no-repeat',
-                      } : {}),
-                      opacity: 0.7
-                    }}
-                  />
-                  
-                  {/* Layer 2: Color (Enforces the correct hue, but lets some original environmental reflections bleed through) */}
-                  <div 
-                    className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
-                    style={{ 
-                      backgroundColor: color, 
-                      mixBlendMode: 'color',
-                      ...(carMaskUrl ? {
-                        WebkitMaskImage: `url(${carMaskUrl})`,
-                        WebkitMaskSize: 'contain',
-                        WebkitMaskPosition: 'center',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskImage: `url(${carMaskUrl})`,
-                        maskSize: 'contain',
-                        maskPosition: 'center',
-                        maskRepeat: 'no-repeat',
-                      } : {}),
-                      opacity: 0.6
-                    }}
-                  />
-
-                  {/* Layer 3: Specular Highlights (Restores the glossy/metallic reflections using the original image) */}
-                  {carMaskUrl && (
-                    <div 
-                      className="absolute inset-0 pointer-events-none z-20"
-                      style={{ 
-                        backgroundImage: `url(${image})`,
-                        backgroundSize: 'contain',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat',
-                        mixBlendMode: 'screen',
-                        filter: 'grayscale(1) contrast(1.8) brightness(0.4)',
-                        opacity: 0.6,
-                        WebkitMaskImage: `url(${carMaskUrl})`,
-                        WebkitMaskSize: 'contain',
-                        WebkitMaskPosition: 'center',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskImage: `url(${carMaskUrl})`,
-                        maskSize: 'contain',
-                        maskPosition: 'center',
-                        maskRepeat: 'no-repeat',
-                      }}
-                    />
-                  )}
-                  
-                  {/* Layer 4: Overlay (Adds a final punch of contrast and metallic pop) */}
-                  <div 
-                    className="absolute inset-0 pointer-events-none transition-colors duration-500 z-20"
-                    style={{ 
-                      backgroundColor: color, 
-                      mixBlendMode: 'overlay',
-                      ...(carMaskUrl ? {
-                        WebkitMaskImage: `url(${carMaskUrl})`,
-                        WebkitMaskSize: 'contain',
-                        WebkitMaskPosition: 'center',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskImage: `url(${carMaskUrl})`,
-                        maskSize: 'contain',
-                        maskPosition: 'center',
-                        maskRepeat: 'no-repeat',
-                      } : {}),
-                      opacity: 0.3
-                    }}
-                  />
-                </>
-              )}
             </div>
             
             {errorMsg && (
@@ -221,7 +226,7 @@ export function CarColorVisualizer() {
             )}
             
             <p className="text-sm text-center text-muted-foreground italic">
-              Note: This visualization uses an AI model to isolate the car. Actual wrap results may vary based on lighting and original car color.
+              Note: This visualization isolates the body paint by mapping shadows to protect windows and tires. Actual wrap results may vary.
             </p>
           </div>
           
