@@ -1,5 +1,6 @@
 import { useLanguage } from '../context/LanguageContext';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { CarColorVisualizer } from '../components/CarColorVisualizer';
 
 export function Portfolio() {
   const { t } = useLanguage();
@@ -34,6 +35,8 @@ export function Portfolio() {
         <p className="text-xl text-center text-muted-foreground mb-12">
           {t('portfolioDesc')}
         </p>
+
+        <CarColorVisualizer />
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project) => (
