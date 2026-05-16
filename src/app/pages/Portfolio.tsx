@@ -25,26 +25,6 @@ export function Portfolio() {
       image: 'https://scontent.famm5-1.fna.fbcdn.net/v/t1.6435-9/207128506_320199166478779_713628242275597041_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=7b2446&_nc_ohc=QkelROPQgf8Q7kNvwF2ZbJd&_nc_oc=AdqrtF1JSyMyfvoBK5G5LhIU_DrXN6gzkPc9SSkRAryOyI9ESfOTLXFtErNudiHRi9QQw5stMT8r5jiI-o1_lowd&_nc_zt=23&_nc_ht=scontent.famm5-1.fna&_nc_gid=QwAfVVBkE3PoLBkii_EyCg&_nc_ss=7a3a8&oh=00_Af3BsFiX4pBiiET2q4Z-_57oiFpCx4DENwP_0bsQwCv6Ew&oe=6A0D9296',
       title: 'Camouflage Wrap',
     },
-    {
-      id: 5,
-      image: 'https://scontent.famm5-1.fna.fbcdn.net/v/t39.30808-6/467218986_1099480348550653_3215334907077526323_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=7b2446&_nc_ohc=jXk3iGYTkwQQ7kNvwEBDzBx&_nc_oc=AdqFSX8eetqX7Fvvywo8NR6LJiIUJoT6-_N3TRmI_IOxFgLwE85xQG2IhJ7MjarM-VDguWW5lL9XpG3hXxGBh36W&_nc_zt=23&_nc_ht=scontent.famm5-1.fna&_nc_gid=HqZ53HTY09gRgh2TQxg1XA&_nc_ss=7a3a8&oh=00_Af0o8o-9bdkiKjVryiMmVdY_GiEAmPkyUw5MoiyWK5LMOQ&oe=69EBE858',
-      title: 'Geometric Design',
-    },
-    {
-      id: 6,
-      image: 'https://scontent.famm5-1.fna.fbcdn.net/v/t39.30808-6/475186786_1149462353552452_8770906235860267957_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=7b2446&_nc_ohc=IUd_reuKdUUQ7kNvwFpC7Qc&_nc_oc=AdqCDUJMAoef-jtnqr0ToK679z6XbeEZmckJgYuozOb1chKCwjgjYJru9Wi8Ieh90OpEQg-3O9K2igD4zJ7sHdUu&_nc_zt=23&_nc_ht=scontent.famm5-1.fna&_nc_gid=V7pNJXqJ4OKcuPCKrqnc7Q&_nc_ss=7a3a8&oh=00_Af1vJAD7DDvbeB_PcuHmzauOcNgzItVgYPRsevM_ffV09g&oe=69EBDE4C',
-      title: 'Comic Wrap',
-    },
-    {
-      id: 7,
-      image: 'https://scontent.famm5-1.fna.fbcdn.net/v/t39.30808-6/469909069_1116011383564216_4018840555343109819_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=7b2446&_nc_ohc=bUjaWUII2r0Q7kNvwFKgUw1&_nc_oc=AdqXGWwo7wjWHPEx0b98Tie6TSWS0n-mcWaEJCJJfMa1Sxph2ByVjJ8YEs52_JdOYzwzCVOZnEn56E2XjpnIdctM&_nc_zt=23&_nc_ht=scontent.famm5-1.fna&_nc_gid=KDDHIK5FtDEk-pYV_g4PXQ&_nc_ss=7a3a8&oh=00_Af07pNjFFBpckO1HSePyIwQJ5qIrn54E7HEp4lnAHcKq5Q&oe=69EBC7A8',
-      title: 'Hearts Design',
-    },
-    {
-      id: 8,
-      image: 'https://scontent.famm5-1.fna.fbcdn.net/v/t51.82787-15/529608610_18518384794062834_5038585999040042613_n.jpg?stp=dst-jpegr_tt6&_nc_cat=103&ccb=1-7&_nc_sid=13d280&_nc_ohc=1XCMyY4Vt2QQ7kNvwE5oumo&_nc_oc=AdpgEKAdVBWT5727hex5x84beZKWb8zEHqTBnLjsx72bi1sJ4P5LEa35AitPqE_jo6A81X0jSulyTCNqYzgnVDUn&_nc_zt=23&se=-1&_nc_ht=scontent.famm5-1.fna&_nc_gid=6aY8CCouFGi5J1mukZ0JRw&_nc_ss=7a389&oh=00_Af3BATetXeTb4uPeVVwOZHf9XzsiNQ37JL6gXo5b3dfrtw&oe=69EBFBD4',
-      title: 'Matte Black Finish',
-    },
   ];
 
   return (
