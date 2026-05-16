@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import imglyRemoveBackground from '@imgly/background-removal';
+import * as imgly from '@imgly/background-removal';
 
 const SUGGESTED_COLORS = [
   { name: 'Satin Pearl White', value: '#f4f6f7' },
@@ -31,7 +31,10 @@ export function CarColorVisualizer() {
     setColor('transparent');
     
     try {
-      const imageBlob = await imglyRemoveBackground(file);
+      const imglyRemoveBackground = (imgly as any).default || (imgly as any).removeBackground || imgly;
+      const imageBlob = typeof imglyRemoveBackground === 'function' 
+        ? await imglyRemoveBackground(file)
+        : await (imgly as any)(file);
       const url = URL.createObjectURL(imageBlob);
       setCarMaskUrl(url);
     } catch (err) {
